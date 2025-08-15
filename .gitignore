@@ -1,4 +1,51 @@
+# env
 .env
-.env.example
 .venv
 venv
+
+# test and notebooks
+test/
+tests/
+notebooks/
+*.ipynb
+
+# python cache
+__pycache__
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# log files
+*.log
+
+# compiled python files
+*.pyc
+*.pyo
+*.pyd
+
+# distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# editor directories and files
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# local environment files
+.env.*
+.envrc
+
+# coverage reports
+htmlcov/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
