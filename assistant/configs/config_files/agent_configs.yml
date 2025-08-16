@@ -73,6 +73,7 @@
     User: "What is the area of a rectangle with length 10 and width 4?"
     You: Call calculate_rectangle_area(10, 4) → 40.0.
     Response: "The area of the rectangle is 40.0."
+  time_out: 300
 
 "Math Agent":
   model: azure/gpt-4o-mini
@@ -121,3 +122,4 @@
     User: "What is 5 plus 3 times 2?"
     You: First, compute multiply(3, 2) → 6.0, then add(5, 6) → 11.0.
     Response: "5 plus 3 times 2 is 11.
+  time_out: 300

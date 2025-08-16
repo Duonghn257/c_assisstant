@@ -6,13 +6,13 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 # Disable tracing
-set_tracing_disabled(disabled=True)
+# set_tracing_disabled(disabled=True)
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=os.path.abspath(os.path.join(os.path.dirname(__file__), "../.env")),
-        extra="ignore"
+        extra="ignore",
     )
 
     # agent config
@@ -40,7 +40,7 @@ class Settings(BaseSettings):
 
     GOOGLE_API_KEY: str
     """API key for authenticating with the Google API."""
-    
+
     # AZURE_OPENAI_EMBEDDING_ENDPOINT: str
     # """Endpoint URL for the Azure OpenAI Embedding service."""
 

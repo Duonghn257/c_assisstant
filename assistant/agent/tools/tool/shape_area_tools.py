@@ -2,15 +2,12 @@
 
 from agents import FunctionTool, function_tool
 from typing import List
+from .base import BaseTool
 
-class ShapeAreaTools:
-    name = "ShapeAreaTools"
 
-    def __init__(self, description: str = "A tool for calculating the area of shapes") -> None:
-        self.description = description
-
-    def __str__(self) -> str:
-        return f"""Tool name: {self.name} \n description: {self.description}"""
+class ShapeTools(BaseTool):
+    name = "ShapeTools"
+    description = "This tools is used to calculate the area of shapes"
 
     def get_tools(self, human_in_loop: bool = False) -> List[FunctionTool]:
         @function_tool
@@ -80,9 +77,9 @@ class ShapeAreaTools:
             if base <= 0 or height <= 0:
                 raise ValueError("Base and height must be positive.")
             return 0.5 * base * height
-        
+
         return [
             calculate_square_area,
             calculate_rectangle_area,
-            calculate_triangle_area
+            calculate_triangle_area,
         ]

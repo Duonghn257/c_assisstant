@@ -39,7 +39,7 @@ Response: "5 plus 3 times 2 is 11.
 # - After using the tools, interpret and present the result clearly to the user.
 # </instructions>
 
-shape_instruction= """
+shape_instruction = """
 You have access to a set of tools to calculate the area of basic geometric shapes: square, rectangle, and triangle.\
 Use tools whenever you need to compute results. Do not perform calculations manually—always call the appropriate function.
 

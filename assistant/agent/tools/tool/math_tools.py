@@ -1,14 +1,11 @@
 from typing import List
 from agents import function_tool, FunctionTool
+from .base import BaseTool
 
-class MathTools:
+
+class MathTools(BaseTool):
     name = "MathTools"
-
-    def __init__(self, description: str = "A tool for performing mathematical operations") -> None:
-        self.description = description
-
-    def __str__(self) -> str:
-        return f"""Tool name: {self.name} \n description: {self.description}"""
+    description = "This tools is used to perform mathematical operations"
 
     def get_tools(self, human_in_loop: bool = False) -> List[FunctionTool]:
         @function_tool
@@ -64,7 +61,7 @@ class MathTools:
                 12.0
             """
             return a * b
-        
+
         @function_tool
         def divide(a: float, b: float) -> float:
             """
@@ -85,7 +82,7 @@ class MathTools:
                 5.0
             """
             return a / b
-        
+
         @function_tool
         def square(a: float) -> float:
             """
@@ -102,7 +99,7 @@ class MathTools:
                 16.0
             """
             return a * a
-        
+
         @function_tool
         def cube(a: float) -> float:
             """
@@ -119,12 +116,5 @@ class MathTools:
                 27.0
             """
             return a * a * a
-        
-        return [
-            add,
-            substract,
-            multiply,
-            divide,
-            square,
-            cube
-        ]
+
+        return [add, substract, multiply, divide, square, cube]
