@@ -12,17 +12,9 @@ from enum import Enum
 from loguru import logger
 
 
-class AgentName(Enum):
+class AgentName(str, Enum):
     MATH_AGENT = "Math Agent"
     SHAPE_AGENT = "Shape Agent"
-
-
-class AgentConfig(BaseModel):
-    model: str = Field(..., description="The model of the agent.")
-    abilities: List[str] = Field(..., description="The abilities of the agent.")
-    description: str = Field(..., description="The description of the agent.")
-    instructions: str = Field(..., description="The instructions of the agent.")
-    time_out: int = Field(..., description="The time out of the agent.")
 
 
 class AgentFactory:
@@ -31,8 +23,8 @@ class AgentFactory:
     agent_classes: dict[str, Type[BaseAgent]] = {}
     tool_registry = ToolRegistry()
 
-    def get_agent(self, agent_name: AgentName) -> BaseAgent:
-        return self.agents[agent_name.value]
+    def get_agent(self, agent_name: str) -> BaseAgent:
+        return self.agents[agent_name]
 
     def register_agent(self, agent_name: AgentName, overwrite: bool = False):
         available_agents = [t.value for t in AgentName]

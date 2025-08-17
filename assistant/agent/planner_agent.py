@@ -1,9 +1,17 @@
 from pydantic import BaseModel, Field
 from typing import List, Dict, Union
-from agents import Agent, FunctionTool, RunResult, RunResultStreaming
+from agents import Agent, FunctionTool, RunResult, Runner
 
-from .base import BaseAgent
-from .helpers import init_llm, Model
+from .base import BaseAgent, AgentConfig
+from .model import init_llm, Model
+from enum import Enum
+
+
+class AgentStatus(Enum):
+    IDLE = "idle"
+    WORKING = "working"
+    COMPLETED = "completed"
+    ERROR = "error"
 
 
 class Task(BaseModel):
@@ -11,6 +19,10 @@ class Task(BaseModel):
         ..., description="The agent is required for this sub-task."
     )  # TODO: generalize by List[AgentType], not str
     description: str = Field(..., description="A clear description of the task.")
+    status: AgentStatus = Field(
+        default=AgentStatus.IDLE,
+        description="The status of the task.",
+    )
 
 
 class Step(BaseModel):
@@ -26,41 +38,78 @@ class Plan(BaseModel):
     )
 
 
-class Planner(BaseAgent):
-    name = "PlannerAgent"
+class Planner:
+    name = "Planner Agent"
 
     def __init__(
-        self,
-        *,
-        model: Model,
-        instructions: str | None = None,
-        tools: List[FunctionTool] | None = None,
-        **agent_kwargs
+        self, *, model: Model, sub_agents: List[BaseAgent] | None = None, **agent_kwargs
     ):
-        super().__init__(
-            name=self.name,  # Lấy name từ class attribute
-            model=model,
-            instructions=instructions,
-            tools=tools,
-            **agent_kwargs
+        self.sub_agents = sub_agents
+
+        self.agent = Agent(
+            name=self.name,
+            model=init_llm(model),
+            instructions=self._get_instructions(),
+            output_type=Plan,
+            **agent_kwargs,
         )
 
-    def invoke(self, query: str, **kwargs) -> RunResult:
-        return super().invoke(query, **kwargs)
+    def _get_instructions(self) -> str:
+        if not self.sub_agents:
+            return """You are a Planner Agent responsible for breaking down complex tasks into structured plans.
 
-    async def run_async(self, query: str, **kwargs) -> RunResult:
-        return await super().run_async(query, **kwargs)
+            Your output must be a Plan containing sequential Steps, where each Step contains Tasks that can be executed in parallel.
 
-    async def run_streaming(self, query: str, **kwargs) -> RunResultStreaming:
-        return super().run_streaming(query, **kwargs)
+            Return your response as a Plan object with the following structure:
+            - steps: List of Step objects
+            - Each Step has: step_number (int) and tasks (List[Task])
+            - Each Task has: agent_type (str), description (str), and status (defaults to IDLE)
+
+            Available agent types: None (no sub-agents configured)
+            """
+
+        # Collect agent configurations
+        agent_descriptions = []
+        for agent in self.sub_agents:
+            agent_config: AgentConfig = agent.get_config()
+            agent_descriptions.append(
+                f"- {agent_config.name}: {agent_config.description}"
+            )
+
+        available_agents = "\n".join(agent_descriptions)
+
+        return f"""You are a Planner Agent responsible for breaking down complex tasks into structured, executable plans.
+
+        Your role is to analyze user queries and create detailed plans using the available sub-agents. \
+        Each plan should be logical, efficient, and leverage the specific capabilities of each agent.
+
+        Available Sub-Agents:
+        {available_agents}
+
+        Your output must be a Plan containing sequential Steps, where each Step contains Tasks that can be executed in parallel within that step.
+
+        Return your response as a Plan object with the following structure:
+        - steps: List of Step objects in sequential order
+        - Each Step has: step_number (int) and tasks (List[Task])
+        - Each Task has: agent_type (str - must match one of the available agent names), description (str - clear, actionable task description), \
+        and status (defaults to IDLE)
+
+        Guidelines:
+        1. Break down complex queries into logical, sequential steps
+        2. Within each step, identify tasks that can be performed in parallel
+        3. Ensure each task is assigned to the most appropriate agent based on their capabilities
+        4. Make task descriptions clear and actionable
+        5. Consider dependencies between steps - later steps should build on earlier ones
+        6. Optimize for efficiency while maintaining logical flow
+        7. All tasks should start with status IDLE
+        """
+
+    async def create_plan(self, query: str, **kwargs) -> RunResult:
+        return await Runner.run(self.agent, input=query, **kwargs)
 
 
 def main():
-    planner = Planner(
-        model=Model("azure/gpt-4o-mini"),
-        instructions="""Planner agent""",
-        output_type=List[str],
-    )
+    planner = Planner()
     print(planner)
 
     pass

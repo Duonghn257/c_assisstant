@@ -33,27 +33,27 @@ class ShapeTools(BaseTool):
             return side * side
 
         @function_tool
-        def calculate_rectangle_area(length: float, width: float) -> float:
+        def calculate_rectangle_area(height: float, width: float) -> float:
             """
             Calculates the area of a rectangle.
 
             Args:
-                length (float): The length of the rectangle. Must be positive.
+                height (float): The height of the rectangle. Must be positive.
                 width (float): The width of the rectangle. Must be positive.
 
             Returns:
                 float: The area of the rectangle.
 
             Raises:
-                ValueError: If either length or width is not positive.
+                ValueError: If either height or width is not positive.
 
             Example:
                 >>> calculate_rectangle_area(10, 4)
                 40.0
             """
-            if length <= 0 or width <= 0:
-                raise ValueError("Length and width must be positive.")
-            return length * width
+            if height <= 0 or width <= 0:
+                raise ValueError("Height and width must be positive.")
+            return height * width
 
         @function_tool
         def calculate_triangle_area(base: float, height: float) -> float:

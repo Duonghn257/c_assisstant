@@ -4,16 +4,19 @@ import os
 from abc import ABC, abstractmethod
 from typing import Any, List, Optional, Dict
 from agents import Agent, FunctionTool, RunResult, RunResultStreaming, Runner
-from .helpers import Model, init_llm
+from .model import Model, init_llm
 from agents.extensions.models.litellm_model import LitellmModel
 from enum import Enum
+from pydantic import BaseModel, Field
 
 
-class AgentStatus(Enum):
-    IDLE = "idle"
-    WORKING = "working"
-    COMPLETED = "completed"
-    ERROR = "error"
+class AgentConfig(BaseModel):
+    name: str = Field(..., description="The name of the agent.")
+    model: str = Field(..., description="The model of the agent.")
+    abilities: List[str] = Field(..., description="The abilities of the agent.")
+    description: str = Field(..., description="The description of the agent.")
+    instructions: str = Field(..., description="The instructions of the agent.")
+    time_out: int = Field(..., description="The time out of the agent.")
 
 
 class BaseAgent(ABC):
@@ -53,6 +56,13 @@ class BaseAgent(ABC):
         tools: List[FunctionTool] | None = None,
         **agents_kwargs,
     ):
+        self.name = name
+        self.model = model
+        self.description = description
+        self.instructions = instructions
+        self.abilities = abilities
+        self.time_out = time_out
+        self.tools = tools
 
         agent_param = {
             "name": name,
@@ -82,6 +92,16 @@ class BaseAgent(ABC):
 
     def __str__(self):
         return f"""Agent name: {self.name}\nAgent Properties: \n{self.agent}"""
+
+    def get_config(self) -> AgentConfig:
+        return AgentConfig(
+            name=self.name,
+            model=self.model,
+            abilities=self.abilities,
+            description=self.description,
+            instructions=self.instructions,
+            time_out=self.time_out,
+        )
 
     @abstractmethod
     def invoke(self, query: str, **kwargs) -> RunResult:

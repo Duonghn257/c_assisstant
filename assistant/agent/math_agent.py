@@ -1,7 +1,7 @@
 from .base import BaseAgent
 from agents import Tool, function_tool, Agent, RunResult, RunResultStreaming
 from .tools import ToolRegistry
-from .helpers import Model
+from .model import Model
 
 from typing import List
 from agents import FunctionTool
