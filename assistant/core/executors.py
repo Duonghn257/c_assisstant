@@ -1,7 +1,7 @@
 from ..agent import Plan
 
 from typing import List, Dict, Any, Optional
-from ..agent import BaseAgent, AgentConfig, Plan
+from ..agent import BaseAgent, AgentConfig, Plan, AgentFactory, AgentName
 from ..agent.planner_agent import Task, Step, AgentStatus
 from agents import RunResult
 import asyncio
@@ -12,26 +12,26 @@ class PlanExecutor:
     Executor class that receives a plan from the Planner and delegates tasks to sub-agents.
     """
 
-    def __init__(self, sub_agents: List[BaseAgent]):
+    def __init__(self, plan: Plan):
         """
         Initialize the executor with available sub-agents.
 
         Args:
             sub_agents: List of available sub-agents to execute tasks
         """
-        self.sub_agents = sub_agents
-        self._agent_registry = self._build_agent_registry()
+        self.plan = plan
+        self.agent_factory: AgentFactory
+        self.__initialize_agents()
 
-    def _build_agent_registry(self) -> Dict[str, BaseAgent]:
-        """Build a registry mapping agent names to agent instances."""
-        registry = {}
-        for agent in self.sub_agents:
-            config: AgentConfig = agent.get_config()
-            registry[config.name] = agent
-        return registry
+    # @staticmethod
+    def __initialize_agents(self):
+        self.agent_factory = AgentFactory()
+        self.agent_factory.register_agent(AgentName.MATH_AGENT)
+        self.agent_factory.register_agent(AgentName.SHAPE_AGENT)
+        self.agent_factory.initialize_agents()
 
     async def execute_plan(
-        self, plan: Plan, context: Optional[Dict[str, Any]] = None
+        self, plan: Plan, context: Optional[Dict[str, Any]] | None = None
     ) -> Dict[str, Any]:
         """
         Execute the given plan by delegating tasks to appropriate sub-agents.
@@ -43,37 +43,40 @@ class PlanExecutor:
         Returns:
             Dictionary containing execution results and final context
         """
-        if context is None:
-            context = {}
 
-        execution_results = {
-            "steps": [],
-            "context": context,
-            "status": "success",
-            "errors": [],
-        }
+        for step in plan.steps:
+            result = await self._execute_step(step, context)
+        # if context is None:
+        #     context = {}
 
-        try:
-            for step in plan.steps:
-                step_result = await self._execute_step(step, context)
-                execution_results["steps"].append(step_result)
+        # execution_results = {
+        #     "steps": [],
+        #     "context": context,
+        #     "status": "success",
+        #     "errors": [],
+        # }
 
-                # Update context with step results
-                context.update(step_result.get("context", {}))
+        # try:
+        #     for step in plan.steps:
+        #         step_result = await self._execute_step(step, context)
+        #         execution_results["steps"].append(step_result)
 
-                # Check if any critical errors occurred
-                if step_result["status"] == "error" and step_result.get(
-                    "critical", False
-                ):
-                    execution_results["status"] = "error"
-                    execution_results["errors"].extend(step_result.get("errors", []))
-                    break
+        #         # Update context with step results
+        #         context.update(step_result.get("context", {}))
 
-        except Exception as e:
-            execution_results["status"] = "error"
-            execution_results["errors"].append(f"Plan execution failed: {str(e)}")
+        #         # Check if any critical errors occurred
+        #         if step_result["status"] == "error" and step_result.get(
+        #             "critical", False
+        #         ):
+        #             execution_results["status"] = "error"
+        #             execution_results["errors"].extend(step_result.get("errors", []))
+        #             break
 
-        return execution_results
+        # except Exception as e:
+        #     execution_results["status"] = "error"
+        #     execution_results["errors"].append(f"Plan execution failed: {str(e)}")
+
+        # return execution_results
 
     async def _execute_step(
         self, step: Step, context: Dict[str, Any]
